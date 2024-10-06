@@ -94,5 +94,10 @@ def add_full_rrwp(data,
     data.log_deg = torch.log(deg + 1)
     data.deg = deg.type(torch.long)
 
+    # HERE
+    print(data)
+    raise Error('end of test')
+                      
+
     return data
 
