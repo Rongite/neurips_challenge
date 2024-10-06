@@ -95,8 +95,9 @@ def add_full_rrwp(data,
     data.deg = deg.type(torch.long)
 
     # HERE
+    print('*'*50)
     print(data)
-    raise Error('end of test')
+    raise ExceptionError('end of test')
                       
 
     return data
