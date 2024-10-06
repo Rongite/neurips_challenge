@@ -118,7 +118,7 @@ def add_full_rrwp(data,
         current_position += N_nodes_max
     
     data.hash_pairwise_feature = torch.from_numpy(padded_hash_pairwise_feature).to(torch.float32)
-    self.number_features = len(data.x[0])        
+    data.number_features = len(data.x[0])        
     
     # Get adjacency matrix
     adj_matrix = np.zeros((N_nodes_max, N_nodes_max, data.edge_attr.shape[1]))
@@ -126,7 +126,7 @@ def add_full_rrwp(data,
     for i,j,attr in zip(data.edge_index[0], data.edge_index[1], data.edge_attr):
         adj_matrix[i][j] = (attr + 1).cpu().numpy()
         adj_matrix[j][i] = (attr + 1).cpu().numpy()    # have to add this because edge_index is undirected
-    self.edge_feature_dim = len(adj_matrix[0][0])
+    data.edge_feature_dim = len(adj_matrix[0][0])
     data.adj_matrix = torch.from_numpy(adj_matrix).to(torch.float32)
 
     print('*'*50)
