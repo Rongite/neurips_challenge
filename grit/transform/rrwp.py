@@ -18,6 +18,8 @@ from torch_geometric.utils import (
 import torch_sparse
 from torch_sparse import SparseTensor
 
+from hashes.hash_dataset import HashDataset
+
 
 def add_node_attr(data: Data, value: Any,
                   attr_name: Optional[str] = None) -> Data:
