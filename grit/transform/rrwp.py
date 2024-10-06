@@ -61,6 +61,7 @@ def add_full_rrwp(data,
     adj = adj * deg_inv.view(-1, 1)
     adj = adj.to_dense()
 
+    # Create P_ij
     pe_list = []
     i = 0
     if add_identity:
@@ -75,14 +76,18 @@ def add_full_rrwp(data,
             out = out @ adj
             pe_list.append(out)
 
+    # This is P_ij
     pe = torch.stack(pe_list, dim=-1) # n x n x k
 
+    # Each row (of which there are n) represent a node's features for different powers of the adj matrix P_ij
     abs_pe = pe.diagonal().transpose(0, 1) # n x k
 
+    # Convert P_ij into sparse format, extracting the row indices, col indices, and values for non-zero elements
     rel_pe = SparseTensor.from_dense(pe, has_value=True)
     rel_pe_row, rel_pe_col, rel_pe_val = rel_pe.coo()
     rel_pe_idx = torch.stack([rel_pe_row, rel_pe_col], dim=0)
 
+    # Apply Shortest Path Distance (Default false)
     if spd:
         spd_idx = walk_length - torch.arange(walk_length)
         val = (rel_pe_val > 0).type(torch.float) * spd_idx.unsqueeze(0)
@@ -90,6 +95,7 @@ def add_full_rrwp(data,
         rel_pe_val = F.one_hot(val, walk_length).type(torch.float)
         abs_pe = torch.zeros_like(abs_pe)
 
+    # Add attributes to the graph data
     data = add_node_attr(data, abs_pe, attr_name=attr_name_abs)
     data = add_node_attr(data, rel_pe_idx, attr_name=f"{attr_name_rel}_index")
     data = add_node_attr(data, rel_pe_val, attr_name=f"{attr_name_rel}_val")
