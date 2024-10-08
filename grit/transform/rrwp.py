@@ -93,7 +93,7 @@ def add_full_rrwp(data,
     # Unravel back into 3 dimensions
     hash_pairwise_feature = hash_pairwise_feature.reshape(n, n, -1)
         
-    print(f'hash_pairwise_feature: {hash_pairwise_feature.size()}')
+    # print(f'hash_pairwise_feature: {hash_pairwise_feature.size()}')
     
     # Concatenate hash_pairwise_feature into pe
     pe = torch.cat((pe, hash_pairwise_feature), dim=-1)
