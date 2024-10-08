@@ -157,7 +157,7 @@ class ElphHashes(object):
                 node_hashings_table[k]['minhash'] = self.minhash_prop(node_hashings_table[k - 1]['minhash'],
                                                                       hash_edge_index)
                 cards[:, k - 1] = self.hll_count(node_hashings_table[k]['hll'])
-            logger.info(f'{k} hop hash generation ran in {time() - start} s')
+            # logger.info(f'{k} hop hash generation ran in {time() - start} s')
         return node_hashings_table, cards
 
     def _get_intersections(self, edge_list, relationships, hash_table):
