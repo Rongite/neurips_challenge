@@ -145,7 +145,7 @@ class ElphHashes(object):
         cards = torch.zeros((num_nodes, self.max_hops))
         node_hashings_table = {}
         for k in range(self.max_hops + 1):
-            logger.info(f"Calculating hop {k} hashes")
+            # logger.info(f"Calculating hop {k} hashes")
             node_hashings_table[k] = {'hll': torch.zeros((num_nodes, self.hll_size), dtype=torch.int8, device=edge_index.device),
                                       'minhash': torch.zeros((num_nodes, self.num_perm), dtype=torch.int64, device=edge_index.device)}
             start = time()
