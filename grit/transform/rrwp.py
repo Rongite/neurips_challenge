@@ -87,6 +87,8 @@ def add_full_rrwp(data,
     rel_pe_row, rel_pe_col, rel_pe_val = rel_pe.coo()
     rel_pe_idx = torch.stack([rel_pe_row, rel_pe_col], dim=0)
 
+    print(f'dense size: {pe.size()}')
+
     # Apply Shortest Path Distance (Default false)
     if spd:
         spd_idx = walk_length - torch.arange(walk_length)
