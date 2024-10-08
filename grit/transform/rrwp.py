@@ -79,6 +79,26 @@ def add_full_rrwp(data,
     # This is P_ij
     pe = torch.stack(pe_list, dim=-1) # n x n x k
 
+    # HERE      
+    #####
+    max_hash_hops = 2
+    #####
+    links = data.edge_index
+    
+    hash_dataset = HashDataset(links.to(device), num_nodes, max_hash_hops=max_hash_hops)
+    n = num_nodes
+    links = torch.from_numpy(np.vstack([np.repeat(np.arange(n), n), np.tile(np.arange(n), n)]).transpose()).to(device)
+    hash_pairwise_feature = hash_dataset.elph_hashes.get_bi_subgraph_features(links, hash_dataset.get_hashes(), hash_dataset.get_cards())
+
+    # Unravel back into 3 dimensions
+    hash_pairwise_feature = hash_pairwise_feature.reshape(n, n, -1)
+        
+    print(f'hash_pairwise_feature: {hash_pairwise_feature.size()}')
+    
+    # Concatenate hash_pairwise_feature into pe
+    pe = torch.cat((pe, hash_pairwise_feature), dim=-1)
+    print(f'new pe: {pe.size()}')
+
     # Each row (of which there are n) represent a node's features for different powers of the adj matrix P_ij
     abs_pe = pe.diagonal().transpose(0, 1) # n x k
 
@@ -104,44 +124,7 @@ def add_full_rrwp(data,
     data.log_deg = torch.log(deg + 1)
     data.deg = deg.type(torch.long)
 
-    # HERE       
-
-    #####
-    max_hash_hops = 2
-    N_nodes_max = 444
-    #####
-    links = data.edge_index
     
-    hash_dataset = HashDataset(links.to(device), num_nodes, max_hash_hops=max_hash_hops)
-    n = num_nodes
-    links = torch.from_numpy(np.vstack([np.repeat(np.arange(n), n), np.tile(np.arange(n), n)]).transpose()).to(device)
-    hash_pairwise_feature = hash_dataset.elph_hashes.get_bi_subgraph_features(links, hash_dataset.get_hashes(), hash_dataset.get_cards()).detach().cpu().numpy()
-
-    # Unravel back into 3 dimensions
-    hash_pairwise_feature = hash_pairwise_feature.reshape(n, n, -1)
-                      
-    # # Pad hash features
-    # # Initialize the new array with zeros
-    # padded_hash_pairwise_feature = np.zeros((N_nodes_max ** 2, hash_pairwise_feature.shape[1]))
-    # # Fill the padded array
-    # current_position = 0
-    # for i in range(0, hash_pairwise_feature.shape[0], num_nodes):
-    #     padded_hash_pairwise_feature[current_position:current_position + num_nodes] = hash_pairwise_feature[i:i + num_nodes]
-    #     current_position += N_nodes_max
-    
-    # data.hash_pairwise_feature = torch.from_numpy(padded_hash_pairwise_feature).to(torch.float32)
-    data.hash_pairwise_feature = torch.from_numpy(hash_pairwise_feature).to(torch.float32)
-                      
-    data.number_features = len(data.x[0])        
-    
-    # Get adjacency matrix
-    adj_matrix = np.zeros((N_nodes_max, N_nodes_max, data.edge_attr.shape[1]))
-    
-    for i,j,attr in zip(data.edge_index[0], data.edge_index[1], data.edge_attr):
-        adj_matrix[i][j] = (attr + 1).cpu().numpy()
-        adj_matrix[j][i] = (attr + 1).cpu().numpy()    # have to add this because edge_index is undirected
-    data.edge_feature_dim = len(adj_matrix[0][0])
-    data.adj_matrix = torch.from_numpy(adj_matrix).to(torch.float32)
 
     print('*'*50)
     print(data)
