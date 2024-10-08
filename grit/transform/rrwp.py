@@ -81,7 +81,7 @@ def add_full_rrwp(data,
 
     # HERE      
     #####
-    max_hash_hops = 2
+    max_hash_hops = 3
     #####
     links = data.edge_index
     
@@ -97,7 +97,7 @@ def add_full_rrwp(data,
     
     # Concatenate hash_pairwise_feature into pe
     pe = torch.cat((pe, hash_pairwise_feature), dim=-1)
-    print(f'new pe: {pe.size()}')
+    # print(f'new pe: {pe.size()}')
 
     # Each row (of which there are n) represent a node's features for different powers of the adj matrix P_ij
     abs_pe = pe.diagonal().transpose(0, 1) # n x k
@@ -107,7 +107,7 @@ def add_full_rrwp(data,
     rel_pe_row, rel_pe_col, rel_pe_val = rel_pe.coo()
     rel_pe_idx = torch.stack([rel_pe_row, rel_pe_col], dim=0)
 
-    print(f'dense size: {pe.size()}')
+    # print(f'dense size: {pe.size()}')
 
     # Apply Shortest Path Distance (Default false)
     if spd:
@@ -126,9 +126,9 @@ def add_full_rrwp(data,
 
     
 
-    print('*'*50)
-    print(data)
-    raise ExceptionError('end of test')
+    # print('*'*50)
+    # print(data)
+    # raise ExceptionError('end of test')
                       
     return data
 
