@@ -81,7 +81,7 @@ def add_full_rrwp(data,
 
     # HERE      
     #####
-    max_hash_hops = 2
+    max_hash_hops = 3
     #####
     links = data.edge_index
     
