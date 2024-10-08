@@ -116,6 +116,9 @@ def add_full_rrwp(data,
     n = num_nodes
     links = torch.from_numpy(np.vstack([np.repeat(np.arange(n), n), np.tile(np.arange(n), n)]).transpose()).to(device)
     hash_pairwise_feature = hash_dataset.elph_hashes.get_bi_subgraph_features(links, hash_dataset.get_hashes(), hash_dataset.get_cards()).detach().cpu().numpy()
+
+    # Unravel back into 3 dimensions
+    hash_pairwise_feature = hash_pairwise_feature.reshape(n, n, -1)
                       
     # # Pad hash features
     # # Initialize the new array with zeros
