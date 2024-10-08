@@ -116,16 +116,19 @@ def add_full_rrwp(data,
     n = num_nodes
     links = torch.from_numpy(np.vstack([np.repeat(np.arange(n), n), np.tile(np.arange(n), n)]).transpose()).to(device)
     hash_pairwise_feature = hash_dataset.elph_hashes.get_bi_subgraph_features(links, hash_dataset.get_hashes(), hash_dataset.get_cards()).detach().cpu().numpy()
-    # Pad hash features
-    # Initialize the new array with zeros
-    padded_hash_pairwise_feature = np.zeros((N_nodes_max ** 2, hash_pairwise_feature.shape[1]))
-    # Fill the padded array
-    current_position = 0
-    for i in range(0, hash_pairwise_feature.shape[0], num_nodes):
-        padded_hash_pairwise_feature[current_position:current_position + num_nodes] = hash_pairwise_feature[i:i + num_nodes]
-        current_position += N_nodes_max
+                      
+    # # Pad hash features
+    # # Initialize the new array with zeros
+    # padded_hash_pairwise_feature = np.zeros((N_nodes_max ** 2, hash_pairwise_feature.shape[1]))
+    # # Fill the padded array
+    # current_position = 0
+    # for i in range(0, hash_pairwise_feature.shape[0], num_nodes):
+    #     padded_hash_pairwise_feature[current_position:current_position + num_nodes] = hash_pairwise_feature[i:i + num_nodes]
+    #     current_position += N_nodes_max
     
-    data.hash_pairwise_feature = torch.from_numpy(padded_hash_pairwise_feature).to(torch.float32)
+    # data.hash_pairwise_feature = torch.from_numpy(padded_hash_pairwise_feature).to(torch.float32)
+    data.hash_pairwise_feature = torch.from_numpy(hash_pairwise_feature).to(torch.float32)
+                      
     data.number_features = len(data.x[0])        
     
     # Get adjacency matrix
