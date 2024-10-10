@@ -39,6 +39,7 @@ def add_node_attr(data: Data, value: Any,
 @torch.no_grad()
 def add_full_rrwp(data,
                   walk_length=8,
+                  max_hash_hops=3,
                   attr_name_abs="rrwp", # name: 'rrwp'
                   attr_name_rel="rrwp", # name: ('rrwp_idx', 'rrwp_val')
                   add_identity=True,
@@ -79,12 +80,8 @@ def add_full_rrwp(data,
     # This is P_ij
     pe = torch.stack(pe_list, dim=-1) # n x n x k
 
-    # HERE      
-    #####
-    max_hash_hops = 3
-    #####
+    # Get hashing features
     links = data.edge_index
-    
     hash_dataset = HashDataset(links.to(device), num_nodes, max_hash_hops=max_hash_hops)
     n = num_nodes
     links = torch.from_numpy(np.vstack([np.repeat(np.arange(n), n), np.tile(np.arange(n), n)]).transpose()).to(device)
