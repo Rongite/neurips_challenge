@@ -65,7 +65,7 @@ class GritTransformer(torch.nn.Module):
         self.ablation = False
 
         if cfg.posenc_RRWP.enable:
-            hash_dim = cfg.posenc_RRWP.nhops(cfg.posenc_RRWP.nhops + 2)
+            hash_dim = cfg.posenc_RRWP.nhops*(cfg.posenc_RRWP.nhops + 2)
             self.rrwp_abs_encoder = register.node_encoder_dict["rrwp_linear"]\
                 (cfg.posenc_RRWP.ksteps + hash_dim, cfg.gnn.dim_inner)
             rel_pe_dim = cfg.posenc_RRWP.ksteps + hash_dim
