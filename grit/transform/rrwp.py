@@ -90,7 +90,7 @@ def add_full_rrwp(data,
     # Unravel back into 3 dimensions
     hash_pairwise_feature = hash_pairwise_feature.reshape(n, n, -1)
 
-    print(hash_pairwise_features.size())
+    print(hash_pairwise_feature.size())
     assert torch.allclose(hash_pairwise_feature, hash_pairwise_feature.transpose(0, 1)), "Features are not symmetric"
 
         
