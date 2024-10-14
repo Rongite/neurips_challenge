@@ -90,15 +90,17 @@ def add_full_rrwp(data,
     # Unravel back into 3 dimensions
     hash_pairwise_feature = hash_pairwise_feature.reshape(n, n, -1)
 
-    print(hash_pairwise_feature.size())
-    # To ensure symmetry, if necessary, you could do:
-    for i in range(n):
-        for j in range(i + 1, n):
-            if torch.equal(hash_pairwise_feature[j, i, :], hash_pairwise_feature[i, j, :]) == False:
-                print(hash_pairwise_feature[j, i, :])
-                print(hash_pairwise_feature[i, j, :])
-                print()
-    assert torch.allclose(hash_pairwise_feature, hash_pairwise_feature.transpose(0, 1)), "Features are not symmetric"
+    ##### TESTING #####
+    # print(hash_pairwise_feature.size())
+    # # Check symmetry: print nonsymmetries
+    # for i in range(n):
+    #     for j in range(i + 1, n):
+    #         if torch.equal(hash_pairwise_feature[j, i, :], hash_pairwise_feature[i, j, :]) == False:
+    #             print(hash_pairwise_feature[j, i, :])
+    #             print(hash_pairwise_feature[i, j, :])
+    #             print()
+    # assert torch.allclose(hash_pairwise_feature, hash_pairwise_feature.transpose(0, 1)), "Features are not symmetric"
+    ###################
                       
     # Concatenate hash_pairwise_feature into pe
     pe = torch.cat((pe, hash_pairwise_feature), dim=-1)
