@@ -97,6 +97,7 @@ def add_full_rrwp(data,
             if torch.equal(hash_pairwise_feature[j, i, :], hash_pairwise_feature[i, j, :]) == False:
                 print(hash_pairwise_feature[j, i, :])
                 print(hash_pairwise_feature[i, j, :])
+                print()
     assert torch.allclose(hash_pairwise_feature, hash_pairwise_feature.transpose(0, 1)), "Features are not symmetric"
                       
     # Concatenate hash_pairwise_feature into pe
