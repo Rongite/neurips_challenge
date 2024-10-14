@@ -91,7 +91,11 @@ def add_full_rrwp(data,
     hash_pairwise_feature = hash_pairwise_feature.reshape(n, n, -1)
 
     print(hash_pairwise_feature.size())
-    print(links)
+    # To ensure symmetry, if necessary, you could do:
+    for i in range(n):
+        for j in range(i + 1, n):
+            if hash_pairwise_feature[j, i, :] != hash_pairwise_feature[i, j, :]:
+                raise ExceptionError('NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
     assert torch.allclose(hash_pairwise_feature, hash_pairwise_feature.transpose(0, 1)), "Features are not symmetric"
                       
     # Concatenate hash_pairwise_feature into pe
