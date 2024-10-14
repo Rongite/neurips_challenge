@@ -94,7 +94,7 @@ def add_full_rrwp(data,
     # To ensure symmetry, if necessary, you could do:
     for i in range(n):
         for j in range(i + 1, n):
-            if hash_pairwise_feature[j, i, :] != hash_pairwise_feature[i, j, :]:
+            if torch.equal(hash_pairwise_feature[j, i, :], hash_pairwise_feature[i, j, :]) == False:
                 raise ExceptionError('NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
     assert torch.allclose(hash_pairwise_feature, hash_pairwise_feature.transpose(0, 1)), "Features are not symmetric"
                       
