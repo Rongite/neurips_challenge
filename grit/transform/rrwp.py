@@ -107,6 +107,8 @@ def add_full_rrwp(data,
     print(temp[0])
     print(hash_pairwise_feature[n-1,n-1,:])
     print(temp[n*n-1])
+    print(hash_pairwise_feature[0,2,:])
+    print(temp[2])
     ###################
                       
     # Concatenate hash_pairwise_feature into pe
