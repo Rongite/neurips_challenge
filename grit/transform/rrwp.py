@@ -100,6 +100,13 @@ def add_full_rrwp(data,
     #             print(hash_pairwise_feature[i, j, :])
     #             print()
     # assert torch.allclose(hash_pairwise_feature, hash_pairwise_feature.transpose(0, 1)), "Features are not symmetric"
+
+    temp = hash_dataset.elph_hashes.get_bi_subgraph_features(links, hash_dataset.get_hashes(), hash_dataset.get_cards())
+
+    print(hash_pairwise_feature[0,0,:])
+    print(temp[0])
+    print(hash_pairwise_feature[n-1,n-1,:])
+    print(temp[n*n-1])
     ###################
                       
     # Concatenate hash_pairwise_feature into pe
