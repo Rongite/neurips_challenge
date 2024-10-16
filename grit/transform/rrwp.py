@@ -110,14 +110,14 @@ def add_full_rrwp(data,
     # print(hash_pairwise_feature[0,2,:])
     # print(temp[2])
     ###################
-                      
-    # Concatenate hash_pairwise_feature into pe
-    pe = torch.cat((pe, hash_pairwise_feature), dim=-1)
-    # print(f'new pe: {pe.size()}')
 
     # Each row (of which there are n) represent a node's features for different powers of the adj matrix P_ij
     abs_pe = pe.diagonal().transpose(0, 1) # n x k
 
+    # Concatenate hash_pairwise_feature into pe
+    pe = torch.cat((pe, hash_pairwise_feature), dim=-1)
+    # print(f'new pe: {pe.size()}')
+                      
     # Convert P_ij into sparse format, extracting the row indices, col indices, and values for non-zero elements
     rel_pe = SparseTensor.from_dense(pe, has_value=True)
     rel_pe_row, rel_pe_col, rel_pe_val = rel_pe.coo()
