@@ -90,27 +90,6 @@ def add_full_rrwp(data,
     # Unravel back into 3 dimensions
     hash_pairwise_feature = hash_pairwise_feature.reshape(n, n, -1)
 
-    ##### TESTING #####
-    # print(hash_pairwise_feature.size())
-    # # Check symmetry: print nonsymmetries
-    # for i in range(n):
-    #     for j in range(i + 1, n):
-    #         if torch.equal(hash_pairwise_feature[j, i, :], hash_pairwise_feature[i, j, :]) == False:
-    #             print(hash_pairwise_feature[j, i, :])
-    #             print(hash_pairwise_feature[i, j, :])
-    #             print()
-    # assert torch.allclose(hash_pairwise_feature, hash_pairwise_feature.transpose(0, 1)), "Features are not symmetric"
-
-    # temp = hash_dataset.elph_hashes.get_bi_subgraph_features(links, hash_dataset.get_hashes(), hash_dataset.get_cards())
-
-    # print(hash_pairwise_feature[0,0,:])
-    # print(temp[0])
-    # print(hash_pairwise_feature[n-1,n-1,:])
-    # print(temp[n*n-1])
-    # print(hash_pairwise_feature[0,2,:])
-    # print(temp[2])
-    ###################
-
     # Each row (of which there are n) represent a node's features for different powers of the adj matrix P_ij
     abs_pe = pe.diagonal().transpose(0, 1) # n x k
 
@@ -142,9 +121,9 @@ def add_full_rrwp(data,
 
     
 
-    # print('*'*50)
-    # print(data)
-    # raise ExceptionError('end of test')
+    print('*'*50)
+    print(data)
+    raise ExceptionError('end of test')
                       
     return data
 
