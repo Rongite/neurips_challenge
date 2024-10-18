@@ -121,9 +121,9 @@ def add_full_rrwp(data,
 
     
 
-    print('*'*50)
-    print(data)
-    raise ExceptionError('end of test')
+    # print('*'*50)
+    # print(data)
+    # raise ExceptionError('end of test')
                       
     return data
 
