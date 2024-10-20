@@ -80,22 +80,24 @@ def add_full_rrwp(data,
     # This is P_ij
     pe = torch.stack(pe_list, dim=-1) # n x n x k
 
-    # Get hashing features
-    links = data.edge_index
-    hash_dataset = HashDataset(links.to(device), num_nodes, max_hash_hops=max_hash_hops)
-    n = num_nodes
-    links = torch.from_numpy(np.vstack([np.repeat(np.arange(n), n), np.tile(np.arange(n), n)]).transpose()).to(device)
-    hash_pairwise_feature = hash_dataset.elph_hashes.get_bi_subgraph_features(links, hash_dataset.get_hashes(), hash_dataset.get_cards())
-
-    # Unravel back into 3 dimensions
-    hash_pairwise_feature = hash_pairwise_feature.reshape(n, n, -1)
+    if max_hash_hops > 0:
+        # Get hashing features
+        links = data.edge_index
+        hash_dataset = HashDataset(links.to(device), num_nodes, max_hash_hops=max_hash_hops)
+        n = num_nodes
+        links = torch.from_numpy(np.vstack([np.repeat(np.arange(n), n), np.tile(np.arange(n), n)]).transpose()).to(device)
+        hash_pairwise_feature = hash_dataset.elph_hashes.get_bi_subgraph_features(links, hash_dataset.get_hashes(), hash_dataset.get_cards())
+    
+        # Unravel back into 3 dimensions
+        hash_pairwise_feature = hash_pairwise_feature.reshape(n, n, -1)
 
     # Each row (of which there are n) represent a node's features for different powers of the adj matrix P_ij
     abs_pe = pe.diagonal().transpose(0, 1) # n x k
 
     # Concatenate hash_pairwise_feature into pe
-    pe = torch.cat((pe, hash_pairwise_feature), dim=-1)
-    # print(f'new pe: {pe.size()}')
+    if max_hash_hops > 0:
+        pe = torch.cat((pe, hash_pairwise_feature), dim=-1)
+        # print(f'new pe: {pe.size()}')
                       
     # Convert P_ij into sparse format, extracting the row indices, col indices, and values for non-zero elements
     rel_pe = SparseTensor.from_dense(pe, has_value=True)
