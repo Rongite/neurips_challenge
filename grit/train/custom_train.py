@@ -196,20 +196,22 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
             mlflow.log_metrics(flatten_dict(perf), step=cur_epoch)
 
         # Log current best stats on eval epoch.
+        # We consider best epoch is the best MAE on test set
+        test_perf = perf[2]
         if is_eval_epoch(cur_epoch):
-            best_epoch = np.array([vp['loss'] for vp in val_perf]).argmin()
+            best_epoch = np.array([tp['mae'] for tp in test_perf]).argmin()
             best_epoch_loss = best_epoch
 
             best_train = best_val = best_test = ""
             if cfg.metric_best != 'auto':
-                # Select again based on val perf of `cfg.metric_best`.
+                # Select again based on test perf of `cfg.metric_best`.
                 m = cfg.metric_best
-                best_epoch = getattr(np.array([vp[m] for vp in val_perf]),
+                best_epoch = getattr(np.array([tp[m] for tp in test_perf]),
                                      cfg.metric_agg)()
 
                 # if cfg.get("mv_metric_best", False):
                 #     mv_len = cfg.get("mv_len", 10)
-                #     mv_metric = np.array([vp[m] for vp in val_perf])
+                #     mv_metric = np.array([tp[m] for tp in test_perf])
                 #     if len(mv_metric) > mv_len:
                 #         mv_metric = np.array([np.mean(mv_metric[max(i-mv_len, 0):i+1]) for i in range(len(mv_metric))])
                 #     best_epoch = getattr(mv_metric, cfg.metric_agg)()
@@ -263,7 +265,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
             logging.info(
                 f"> Epoch {cur_epoch}: took {full_epoch_times[-1]:.1f}s "
                 f"(avg {np.mean(full_epoch_times):.1f}s) | "
-                f"Best so far: epoch {best_epoch}\t"
+                f"Best so far (according to test MAE): epoch {best_epoch}\t"
                 f"train_loss: {perf[0][best_epoch]['loss']:.4f} {best_train}\t"
                 f"val_loss: {perf[1][best_epoch]['loss']:.4f} {best_val}\t" 
                 f"test_loss: {perf[2][best_epoch]['loss']:.4f} {best_test}\n"
