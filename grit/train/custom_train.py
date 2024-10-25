@@ -204,7 +204,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
 
             best_train = best_val = best_test = ""
             if cfg.metric_best != 'auto':
-                # Select again based on val perf of `cfg.metric_best`.
+                # Select again based on test perf of `cfg.metric_best`.
                 m = cfg.metric_best
                 best_epoch = getattr(np.array([tp[m] for tp in test_perf]),
                                      cfg.metric_agg)()
