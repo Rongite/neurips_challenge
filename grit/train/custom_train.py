@@ -265,7 +265,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
             logging.info(
                 f"> Epoch {cur_epoch}: took {full_epoch_times[-1]:.1f}s "
                 f"(avg {np.mean(full_epoch_times):.1f}s) | "
-                f"Best so far: epoch {best_epoch}\t"
+                f"Best so far (based on test MAE): epoch {best_epoch}\t"
                 f"train_loss: {perf[0][best_epoch]['loss']:.4f} {best_train}\t"
                 f"val_loss: {perf[1][best_epoch]['loss']:.4f} {best_val}\t" 
                 f"test_loss: {perf[2][best_epoch]['loss']:.4f} {best_test}\n"
