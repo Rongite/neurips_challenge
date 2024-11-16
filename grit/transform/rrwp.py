@@ -46,39 +46,40 @@ def add_full_rrwp(data,
                   spd=False,
                   **kwargs
                   ):
+    """Removing all rrwp stuff. Only keeping hash. Keeping the name as rrwp for simplicity"""
     device=data.edge_index.device
-    ind_vec = torch.eye(walk_length, dtype=torch.float, device=device)
+    # ind_vec = torch.eye(walk_length, dtype=torch.float, device=device)
     num_nodes = data.num_nodes
-    edge_index, edge_weight = data.edge_index, data.edge_weight
+    # edge_index, edge_weight = data.edge_index, data.edge_weight
 
-    adj = SparseTensor.from_edge_index(edge_index, edge_weight,
-                                       sparse_sizes=(num_nodes, num_nodes),
-                                       )
+    # adj = SparseTensor.from_edge_index(edge_index, edge_weight,
+    #                                    sparse_sizes=(num_nodes, num_nodes),
+    #                                    )
 
-    # Compute D^{-1} A:
+    # # Compute D^{-1} A:
     deg = adj.sum(dim=1)
     deg_inv = 1.0 / adj.sum(dim=1)
     deg_inv[deg_inv == float('inf')] = 0
     adj = adj * deg_inv.view(-1, 1)
-    adj = adj.to_dense()
+    # adj = adj.to_dense()
 
-    # Create P_ij
-    pe_list = []
-    i = 0
-    if add_identity:
-        pe_list.append(torch.eye(num_nodes, dtype=torch.float))
-        i = i + 1
+    # # Create P_ij
+    # pe_list = []
+    # i = 0
+    # if add_identity:
+    #     pe_list.append(torch.eye(num_nodes, dtype=torch.float))
+    #     i = i + 1
 
-    out = adj
-    pe_list.append(adj)
+    # out = adj
+    # pe_list.append(adj)
 
-    if walk_length > 2:
-        for j in range(i + 1, walk_length):
-            out = out @ adj
-            pe_list.append(out)
+    # if walk_length > 2:
+    #     for j in range(i + 1, walk_length):
+    #         out = out @ adj
+    #         pe_list.append(out)
 
-    # This is P_ij
-    pe = torch.stack(pe_list, dim=-1) # n x n x k
+    # # This is P_ij
+    # pe = torch.stack(pe_list, dim=-1) # n x n x k
 
     if max_hash_hops > 0:
         # Get hashing features
@@ -92,12 +93,14 @@ def add_full_rrwp(data,
         hash_pairwise_feature = hash_pairwise_feature.reshape(n, n, -1)
 
     # Each row (of which there are n) represent a node's features for different powers of the adj matrix P_ij
-    abs_pe = pe.diagonal().transpose(0, 1) # n x k
+    # abs_pe = pe.diagonal().transpose(0, 1) # n x k
 
-    # Concatenate hash_pairwise_feature into pe
+    # # Concatenate hash_pairwise_feature into pe
     if max_hash_hops > 0:
-        pe = torch.cat((pe, hash_pairwise_feature), dim=-1)
-        # print(f'new pe: {pe.size()}')
+    #     pe = torch.cat((pe, hash_pairwise_feature), dim=-1)
+    #     # print(f'new pe: {pe.size()}')
+
+        pe = hash_pairwise_feature
                       
     # Convert P_ij into sparse format, extracting the row indices, col indices, and values for non-zero elements
     rel_pe = SparseTensor.from_dense(pe, has_value=True)
@@ -115,7 +118,7 @@ def add_full_rrwp(data,
         abs_pe = torch.zeros_like(abs_pe)
 
     # Add attributes to the graph data
-    data = add_node_attr(data, abs_pe, attr_name=attr_name_abs)
+    # data = add_node_attr(data, abs_pe, attr_name=attr_name_abs)
     data = add_node_attr(data, rel_pe_idx, attr_name=f"{attr_name_rel}_index")
     data = add_node_attr(data, rel_pe_val, attr_name=f"{attr_name_rel}_val")
     data.log_deg = torch.log(deg + 1)
