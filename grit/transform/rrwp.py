@@ -52,9 +52,9 @@ def add_full_rrwp(data,
     num_nodes = data.num_nodes
     # edge_index, edge_weight = data.edge_index, data.edge_weight
 
-    # adj = SparseTensor.from_edge_index(edge_index, edge_weight,
-    #                                    sparse_sizes=(num_nodes, num_nodes),
-    #                                    )
+    adj = SparseTensor.from_edge_index(edge_index, edge_weight,
+                                       sparse_sizes=(num_nodes, num_nodes),
+                                       )
 
     # # Compute D^{-1} A:
     deg = adj.sum(dim=1)

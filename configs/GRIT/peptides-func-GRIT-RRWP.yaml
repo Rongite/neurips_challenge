@@ -23,6 +23,7 @@ dataset:
 posenc_RRWP:
   enable: True
   ksteps: 17
+  nhops: 3
   add_identity: True
   add_node_attr: False
 train:
