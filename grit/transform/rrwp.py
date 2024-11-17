@@ -50,7 +50,7 @@ def add_full_rrwp(data,
     device=data.edge_index.device
     # ind_vec = torch.eye(walk_length, dtype=torch.float, device=device)
     num_nodes = data.num_nodes
-    # edge_index, edge_weight = data.edge_index, data.edge_weight
+    edge_index, edge_weight = data.edge_index, data.edge_weight
 
     adj = SparseTensor.from_edge_index(edge_index, edge_weight,
                                        sparse_sizes=(num_nodes, num_nodes),
