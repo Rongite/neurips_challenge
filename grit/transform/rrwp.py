@@ -46,7 +46,8 @@ def add_full_rrwp(data,
                   **kwargs
                   ):
     """Removing all rrwp stuff. Only keeping hash. Keeping the name as rrwp for simplicity"""
-    device=data.edge_index.device
+    # device=data.edge_index.device
+    device = "cuda"
     import pdb; pdb.set_trace()
 
     # ind_vec = torch.eye(walk_length, dtype=torch.float, device=device)
