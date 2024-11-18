@@ -88,7 +88,7 @@ def add_full_rrwp(data,
         hash_dataset = HashDataset(links.to(device), num_nodes, max_hash_hops=max_hash_hops)
         n = num_nodes
         links = torch.from_numpy(np.vstack([np.repeat(np.arange(n), n), np.tile(np.arange(n), n)]).transpose()).to(device)
-        hash_pairwise_feature = hash_dataset.elph_hashes.get_bi_subgraph_features(links, hash_dataset.get_hashes(), hash_dataset.get_cards())
+        hash_pairwise_feature = hash_dataset.elph_hashes.get_bi_subgraph_features(links, hash_dataset.get_hashes(), hash_dataset.get_cards()).to('cpu')
     
         # Unravel back into 3 dimensions
         hash_pairwise_feature = hash_pairwise_feature.reshape(n, n, -1)
