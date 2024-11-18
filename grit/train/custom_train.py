@@ -199,13 +199,13 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
         # We consider best epoch is the best MAE on test set
         test_perf = perf[2]
         if is_eval_epoch(cur_epoch):
-            best_epoch = np.array([tp['mae'] for tp in test_perf]).argmin()
+            best_epoch = np.array([tp['loss'] for tp in test_perf]).argmin()
             best_epoch_loss = best_epoch
 
             best_train = best_val = best_test = ""
             if cfg.metric_best != 'auto':
                 # Select again based on test perf of `cfg.metric_best`.
-                m = cfg.metric_best
+                m = 'loss'
                 best_epoch = getattr(np.array([tp[m] for tp in test_perf]),
                                      cfg.metric_agg)()
 
