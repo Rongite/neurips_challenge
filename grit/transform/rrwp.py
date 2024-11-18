@@ -20,7 +20,6 @@ from torch_sparse import SparseTensor
 
 from .hashes.hash_dataset import HashDataset
 
-
 def add_node_attr(data: Data, value: Any,
                   attr_name: Optional[str] = None) -> Data:
     if attr_name is None:
@@ -48,6 +47,8 @@ def add_full_rrwp(data,
                   ):
     """Removing all rrwp stuff. Only keeping hash. Keeping the name as rrwp for simplicity"""
     device=data.edge_index.device
+    import pdb; pdb.set_trace()
+
     # ind_vec = torch.eye(walk_length, dtype=torch.float, device=device)
     num_nodes = data.num_nodes
     edge_index, edge_weight = data.edge_index, data.edge_weight
