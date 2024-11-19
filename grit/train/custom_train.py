@@ -21,7 +21,6 @@ def train_epoch(logger, loader, model, optimizer, scheduler, batch_accumulation)
     optimizer.zero_grad()
     time_start = time.time()
     for iter, batch in enumerate(loader):
-        # ipdb.set_trace()
         batch.split = 'train'
         batch.to(torch.device(cfg.device))
         pred, true = model(batch)
@@ -93,7 +92,6 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
         optimizer: PyTorch optimizer
         scheduler: PyTorch learning rate scheduler
     """
-    # loggers[0].tb_writer.add_graph(model.model)
 
 
     start_epoch = 0
@@ -151,13 +149,6 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                     cfg.optim.batch_accumulation)
         perf[0].append(loggers[0].write_epoch(cur_epoch))
 
-        # debug = True
-        # if debug:
-        #     tb_writer = loggers[0].tb_writer
-        #     for k,v in model.named_buffers():
-        #         if "running" in k:
-        #             tb_writer.add_text(k, str(v), global_step=cur_epoch)
-
         if is_eval_epoch(cur_epoch):
             for i in range(1, num_splits):
                 try:
@@ -205,17 +196,9 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
             best_train = best_val = best_test = ""
             if cfg.metric_best != 'auto':
                 # Select again based on test perf of `cfg.metric_best`.
-                m = 'loss'
+                m = cfg.metric_best
                 best_epoch = getattr(np.array([tp[m] for tp in test_perf]),
                                      cfg.metric_agg)()
-
-                # if cfg.get("mv_metric_best", False):
-                #     mv_len = cfg.get("mv_len", 10)
-                #     mv_metric = np.array([tp[m] for tp in test_perf])
-                #     if len(mv_metric) > mv_len:
-                #         mv_metric = np.array([np.mean(mv_metric[max(i-mv_len, 0):i+1]) for i in range(len(mv_metric))])
-                #     best_epoch = getattr(mv_metric, cfg.metric_agg)()
-
 
                 if cfg.best_by_loss:
                     best_epoch = best_epoch_loss
@@ -234,8 +217,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                         if m in perf[i][best_epoch]:
                             bstats[f"best/{s}_{m}"] = perf[i][best_epoch][m]
                             if cfg.wandb.use:
-                                run.summary[f"best_{s}_perf"] = \
-                                    perf[i][best_epoch][m]
+                                run.summary[f"best_{s}_perf"] = perf[i][best_epoch][m]
                             if cfg.mlflow.use:
                                 mlflow.log_metric(f"best_{s}_perf", perf[i][best_epoch][m])
 

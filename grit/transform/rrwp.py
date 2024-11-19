@@ -46,10 +46,8 @@ def add_full_rrwp(data,
                   **kwargs
                   ):
     """Removing all rrwp stuff. Only keeping hash. Keeping the name as rrwp for simplicity"""
-    # device=data.edge_index.device
     device = "cuda"
 
-    # ind_vec = torch.eye(walk_length, dtype=torch.float, device=device)
     num_nodes = data.num_nodes
     edge_index, edge_weight = data.edge_index, data.edge_weight
 
@@ -98,9 +96,6 @@ def add_full_rrwp(data,
 
     # # Concatenate hash_pairwise_feature into pe
     if max_hash_hops > 0:
-    #     pe = torch.cat((pe, hash_pairwise_feature), dim=-1)
-    #     # print(f'new pe: {pe.size()}')
-
         pe = hash_pairwise_feature
                       
     # Convert P_ij into sparse format, extracting the row indices, col indices, and values for non-zero elements
@@ -124,12 +119,6 @@ def add_full_rrwp(data,
     data = add_node_attr(data, rel_pe_val, attr_name=f"{attr_name_rel}_val")
     data.log_deg = torch.log(deg + 1)
     data.deg = deg.type(torch.long)
-
-    
-
-    # print('*'*50)
-    # print(data)
-    # raise ExceptionError('end of test')
                       
     return data
 

@@ -88,7 +88,6 @@ class GritTransformer(torch.nn.Module):
             "The inner and hidden dims must match."
 
         global_model_type = cfg.gt.get('layer_type', "GritTransformer")
-        # global_model_type = "GritTransformer"
 
         TransformerLayer = register.layer_dict.get(global_model_type)
 
@@ -108,7 +107,6 @@ class GritTransformer(torch.nn.Module):
                 O_e=cfg.gt.attn.O_e,
                 cfg=cfg.gt,
             ))
-        # layers = []
 
         self.layers = torch.nn.Sequential(*layers)
         GNNHead = register.head_dict[cfg.gnn.head]

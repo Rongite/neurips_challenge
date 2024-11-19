@@ -1,5 +1,6 @@
 out_dir: results
 metric_best: ap
+metric_agg: argmax
 accelerator: "cuda:0"
 mlflow:
   use: False
