@@ -18,6 +18,7 @@ from torch_geometric.utils import (
 import torch_sparse
 from torch_sparse import SparseTensor
 
+from .hashes.hash_dataset import HashDataset
 
 def add_node_attr(data: Data, value: Any,
                   attr_name: Optional[str] = None) -> Data:
@@ -37,14 +38,16 @@ def add_node_attr(data: Data, value: Any,
 @torch.no_grad()
 def add_full_rrwp(data,
                   walk_length=8,
+                  max_hash_hops=3,
                   attr_name_abs="rrwp", # name: 'rrwp'
                   attr_name_rel="rrwp", # name: ('rrwp_idx', 'rrwp_val')
                   add_identity=True,
                   spd=False,
                   **kwargs
                   ):
-    device=data.edge_index.device
-    ind_vec = torch.eye(walk_length, dtype=torch.float, device=device)
+    """Removing all rrwp stuff. Only keeping hash. Keeping the name as rrwp for simplicity"""
+    device = "cuda"
+
     num_nodes = data.num_nodes
     edge_index, edge_weight = data.edge_index, data.edge_weight
 
@@ -52,35 +55,57 @@ def add_full_rrwp(data,
                                        sparse_sizes=(num_nodes, num_nodes),
                                        )
 
-    # Compute D^{-1} A:
+    # # Compute D^{-1} A:
     deg = adj.sum(dim=1)
     deg_inv = 1.0 / adj.sum(dim=1)
     deg_inv[deg_inv == float('inf')] = 0
     adj = adj * deg_inv.view(-1, 1)
-    adj = adj.to_dense()
+    # adj = adj.to_dense()
 
-    pe_list = []
-    i = 0
-    if add_identity:
-        pe_list.append(torch.eye(num_nodes, dtype=torch.float))
-        i = i + 1
+    # # Create P_ij
+    # pe_list = []
+    # i = 0
+    # if add_identity:
+    #     pe_list.append(torch.eye(num_nodes, dtype=torch.float))
+    #     i = i + 1
 
-    out = adj
-    pe_list.append(adj)
+    # out = adj
+    # pe_list.append(adj)
 
-    if walk_length > 2:
-        for j in range(i + 1, walk_length):
-            out = out @ adj
-            pe_list.append(out)
+    # if walk_length > 2:
+    #     for j in range(i + 1, walk_length):
+    #         out = out @ adj
+    #         pe_list.append(out)
 
-    pe = torch.stack(pe_list, dim=-1) # n x n x k
+    # # This is P_ij
+    # pe = torch.stack(pe_list, dim=-1) # n x n x k
 
-    abs_pe = pe.diagonal().transpose(0, 1) # n x k
+    if max_hash_hops > 0:
+        # Get hashing features
+        links = data.edge_index
+        hash_dataset = HashDataset(links.to(device), num_nodes, max_hash_hops=max_hash_hops)
+        n = num_nodes
+        links = torch.from_numpy(np.vstack([np.repeat(np.arange(n), n), np.tile(np.arange(n), n)]).transpose()).to(device)
+        hash_pairwise_feature = hash_dataset.elph_hashes.get_bi_subgraph_features(links, hash_dataset.get_hashes(), hash_dataset.get_cards()).to('cpu')
+    
+        # Unravel back into 3 dimensions
+        hash_pairwise_feature = hash_pairwise_feature.reshape(n, n, -1)
 
+    # Each row (of which there are n) represent a node's features for different powers of the adj matrix P_ij
+    # abs_pe = pe.diagonal().transpose(0, 1) # n x k
+
+    # # Concatenate hash_pairwise_feature into pe
+    if max_hash_hops > 0:
+        pe = hash_pairwise_feature
+                      
+    # Convert P_ij into sparse format, extracting the row indices, col indices, and values for non-zero elements
     rel_pe = SparseTensor.from_dense(pe, has_value=True)
     rel_pe_row, rel_pe_col, rel_pe_val = rel_pe.coo()
     rel_pe_idx = torch.stack([rel_pe_row, rel_pe_col], dim=0)
 
+    # print(f'dense size: {pe.size()}')
+
+    # Apply Shortest Path Distance (Default false)
     if spd:
         spd_idx = walk_length - torch.arange(walk_length)
         val = (rel_pe_val > 0).type(torch.float) * spd_idx.unsqueeze(0)
@@ -88,11 +113,12 @@ def add_full_rrwp(data,
         rel_pe_val = F.one_hot(val, walk_length).type(torch.float)
         abs_pe = torch.zeros_like(abs_pe)
 
-    data = add_node_attr(data, abs_pe, attr_name=attr_name_abs)
+    # Add attributes to the graph data
+    # data = add_node_attr(data, abs_pe, attr_name=attr_name_abs)
     data = add_node_attr(data, rel_pe_idx, attr_name=f"{attr_name_rel}_index")
     data = add_node_attr(data, rel_pe_val, attr_name=f"{attr_name_rel}_val")
     data.log_deg = torch.log(deg + 1)
     data.deg = deg.type(torch.long)
-
+                      
     return data
 

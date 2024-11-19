@@ -65,9 +65,12 @@ class GritTransformer(torch.nn.Module):
         self.ablation = False
 
         if cfg.posenc_RRWP.enable:
-            self.rrwp_abs_encoder = register.node_encoder_dict["rrwp_linear"]\
-                (cfg.posenc_RRWP.ksteps, cfg.gnn.dim_inner)
-            rel_pe_dim = cfg.posenc_RRWP.ksteps
+            hash_dim = cfg.posenc_RRWP.nhops*(cfg.posenc_RRWP.nhops + 2)
+
+            # self.rrwp_abs_encoder = register.node_encoder_dict["rrwp_linear"]\
+            # #     (cfg.posenc_RRWP.ksteps, cfg.gnn.dim_inner)
+            # rel_pe_dim = cfg.posenc_RRWP.ksteps + hash_dim
+            rel_pe_dim = hash_dim
             self.rrwp_rel_encoder = register.edge_encoder_dict["rrwp_linear"] \
                 (rel_pe_dim, cfg.gnn.dim_edge,
                  pad_to_full_graph=cfg.gt.attn.full_attn,
@@ -85,7 +88,6 @@ class GritTransformer(torch.nn.Module):
             "The inner and hidden dims must match."
 
         global_model_type = cfg.gt.get('layer_type', "GritTransformer")
-        # global_model_type = "GritTransformer"
 
         TransformerLayer = register.layer_dict.get(global_model_type)
 
@@ -105,7 +107,6 @@ class GritTransformer(torch.nn.Module):
                 O_e=cfg.gt.attn.O_e,
                 cfg=cfg.gt,
             ))
-        # layers = []
 
         self.layers = torch.nn.Sequential(*layers)
         GNNHead = register.head_dict[cfg.gnn.head]

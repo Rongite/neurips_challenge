@@ -138,8 +138,10 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
 
     if 'RRWP' in pe_types:
         param = cfg.posenc_RRWP
+
         transform = partial(add_full_rrwp,
                             walk_length=param.ksteps,
+                            max_hash_hops=param.nhops,
                             attr_name_abs="rrwp",
                             attr_name_rel="rrwp",
                             add_identity=True,
