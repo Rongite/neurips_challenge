@@ -194,45 +194,45 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
             best_epoch_loss = best_epoch
 
             best_train = best_val = best_test = ""
-            # if cfg.metric_best != 'auto':
-            #     # Select again based on test perf of `cfg.metric_best`.
-            #     m = cfg.metric_best
-            #     best_epoch = getattr(np.array([tp[m] for tp in test_perf]),
-            #                          cfg.metric_agg)()
+            if cfg.metric_best != 'auto':
+                # Select again based on test perf of `cfg.metric_best`.
+                m = cfg.metric_best
+                best_epoch = getattr(np.array([tp[m] for tp in test_perf]),
+                                     cfg.metric_agg)()
 
-            #     if cfg.best_by_loss:
-            #         best_epoch = best_epoch_loss
+                if cfg.best_by_loss:
+                    best_epoch = best_epoch_loss
 
-            #     if m in perf[0][best_epoch]:
-            #         best_train = f"train_{m}: {perf[0][best_epoch][m]:.4f}"
-            #     else:
-            #         best_train = f"train_{m}: {0:.4f}"
-            #     best_val = f"val_{m}: {perf[1][best_epoch][m]:.4f}"
-            #     best_test = f"test_{m}: {perf[2][best_epoch][m]:.4f}"
+                if m in perf[0][best_epoch]:
+                    best_train = f"train_{m}: {perf[0][best_epoch][m]:.4f}"
+                else:
+                    best_train = f"train_{m}: {0:.4f}"
+                best_val = f"val_{m}: {perf[1][best_epoch][m]:.4f}"
+                best_test = f"test_{m}: {perf[2][best_epoch][m]:.4f}"
 
-            #     if cfg.wandb.use or cfg.mlflow.use:
-            #         bstats = {"best/epoch": best_epoch}
-            #         for i, s in enumerate(['train', 'val', 'test']):
-            #             bstats[f"best/{s}_loss"] = perf[i][best_epoch]['loss']
-            #             if m in perf[i][best_epoch]:
-            #                 bstats[f"best/{s}_{m}"] = perf[i][best_epoch][m]
-            #                 if cfg.wandb.use:
-            #                     run.summary[f"best_{s}_perf"] = perf[i][best_epoch][m]
-            #                 if cfg.mlflow.use:
-            #                     mlflow.log_metric(f"best_{s}_perf", perf[i][best_epoch][m])
+                if cfg.wandb.use or cfg.mlflow.use:
+                    bstats = {"best/epoch": best_epoch}
+                    for i, s in enumerate(['train', 'val', 'test']):
+                        bstats[f"best/{s}_loss"] = perf[i][best_epoch]['loss']
+                        if m in perf[i][best_epoch]:
+                            bstats[f"best/{s}_{m}"] = perf[i][best_epoch][m]
+                            if cfg.wandb.use:
+                                run.summary[f"best_{s}_perf"] = perf[i][best_epoch][m]
+                            if cfg.mlflow.use:
+                                mlflow.log_metric(f"best_{s}_perf", perf[i][best_epoch][m])
 
-            #             for x in ['hits@1', 'hits@3', 'hits@10', 'mrr']:
-            #                 if x in perf[i][best_epoch]:
-            #                     bstats[f"best/{s}_{x}"] = perf[i][best_epoch][x]
-            #         if cfg.wandb.use:
-            #             run.log(bstats, step=cur_epoch)
-            #             run.summary["full_epoch_time_avg"] = np.mean(full_epoch_times)
-            #             run.summary["full_epoch_time_sum"] = np.sum(full_epoch_times)
+                        for x in ['hits@1', 'hits@3', 'hits@10', 'mrr']:
+                            if x in perf[i][best_epoch]:
+                                bstats[f"best/{s}_{x}"] = perf[i][best_epoch][x]
+                    if cfg.wandb.use:
+                        run.log(bstats, step=cur_epoch)
+                        run.summary["full_epoch_time_avg"] = np.mean(full_epoch_times)
+                        run.summary["full_epoch_time_sum"] = np.sum(full_epoch_times)
 
-            #         if cfg.mlflow.use:
-            #             mlflow.log_metrics(bstats, step=cur_epoch)
-            #             mlflow.log_metric("full_epoch_time_avg", np.mean(full_epoch_times))
-            #             mlflow.log_metric("full_epoch_time_sum", np.sum(full_epoch_times))
+                    if cfg.mlflow.use:
+                        mlflow.log_metrics(bstats, step=cur_epoch)
+                        mlflow.log_metric("full_epoch_time_avg", np.mean(full_epoch_times))
+                        mlflow.log_metric("full_epoch_time_sum", np.sum(full_epoch_times))
 
 
             # Checkpoint the best epoch params (if enabled).
