@@ -2,7 +2,7 @@ import yaml
 import os
 from copy import deepcopy
 
-file_name = 'peptides-struct-GRIT-RRWP.yaml'
+file_name = 'peptides-func-GRIT-RRWP.yaml'
 config_dir = f'configs/GRIT/{file_name}'
 config = None
 
