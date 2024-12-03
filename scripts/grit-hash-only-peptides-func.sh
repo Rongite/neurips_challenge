@@ -9,7 +9,7 @@ model_name=peptides-func-GRIT-RRWP
                 # Perform modulo operation and check condition
                 # if (( dim_hidden % n_head == 0 )); then
                 batch_size=16
-                n_head=8
+                n_head=4
                 file_name="${config_dir}/${model_name}-batch${batch_size}-layers${layer}-head${n_head}-dim_hidden${dim_hidden}-lr${lr}.yaml"
                 echo "$file_name"
                 python main.py --cfg "$file_name" wandb.use False accelerator "cuda:0" seed 41 dataset.dir '/mnt/vstor/CSE_CSDS_VXC204/dhl64/datalake'
