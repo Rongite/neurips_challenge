@@ -5,8 +5,8 @@ n_head=$1
 # for batch_size in 16 32 64; do
     for layer in 4 6 8; do
         # for n_head in 8 16 32 64; do
-        for dim_hidden in 64 96; do
-            for lr in 0.0003 0.001 0.003; do
+        for dim_hidden in 128 256; do
+            for lr in 0.0003 0.0005 0.001; do
                 # Perform modulo operation and check condition
                 # if (( dim_hidden % n_head == 0 )); then
                 batch_size=16
