@@ -1,5 +1,6 @@
 config_dir=configs/GRIT-hash-only
 model_name=peptides-func-GRIT-RRWP
+n_head=$1
 
 # for batch_size in 16 32 64; do
     for layer in 4 6 8; do
