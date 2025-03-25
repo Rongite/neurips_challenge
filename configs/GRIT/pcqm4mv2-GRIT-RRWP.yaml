@@ -25,6 +25,7 @@ dataset:
 posenc_RWPSE:
   enable: True
   ksteps: 16
+  nhops: 3
   add_identity: True
   add_node_attr: False
   add_inverse: True
