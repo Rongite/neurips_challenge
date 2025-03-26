@@ -22,7 +22,7 @@ dataset:
   edge_encoder: True
   edge_encoder_name: Bond
   edge_encoder_bn: False
-posenc_RWPSE:
+posenc_RRWP:
   enable: True
   ksteps: 16
   nhops: 3
