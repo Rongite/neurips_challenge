@@ -43,6 +43,8 @@ def add_full_rrwp(data,
                   attr_name_rel="rrwp", # name: ('rrwp_idx', 'rrwp_val')
                   add_identity=True,
                   spd=False,
+                  hll_p=8,
+                  minhash_num_perm=128,
                   **kwargs
                   ):
     """Removing all rrwp stuff. Only keeping hash. Keeping the name as rrwp for simplicity"""
@@ -83,7 +85,7 @@ def add_full_rrwp(data,
     if max_hash_hops > 0:
         # Get hashing features
         links = data.edge_index
-        hash_dataset = HashDataset(links.to(device), num_nodes, max_hash_hops=max_hash_hops)
+        hash_dataset = HashDataset(links.to(device), num_nodes, max_hash_hops=max_hash_hops, hll_p=hll_p, minhash_num_perm=minhash_num_perm)
         n = num_nodes
         links = torch.from_numpy(np.vstack([np.repeat(np.arange(n), n), np.tile(np.arange(n), n)]).transpose()).to(device)
         hash_pairwise_feature = hash_dataset.elph_hashes.get_bi_subgraph_features(links, hash_dataset.get_hashes(), hash_dataset.get_cards()).to('cpu')

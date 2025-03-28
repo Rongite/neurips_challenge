@@ -146,6 +146,8 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
                             attr_name_rel="rrwp",
                             add_identity=True,
                             spd=param.spd, # by default False
+                            hll_p=param.hll_p,
+                            minhash_num_perm=param.minhash_num_perm
                             )
         data = transform(data)
 

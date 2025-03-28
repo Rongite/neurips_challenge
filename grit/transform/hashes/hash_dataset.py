@@ -13,10 +13,10 @@ class HashDataset():
     """
 
     def __init__(
-            self, edge_index, num_nodes, max_hash_hops=3, hll_p=12, **kwargs):
+            self, edge_index, num_nodes, max_hash_hops=3, hll_p=12, minhash_num_perm=256, **kwargs):
         self.max_hash_hops = max_hash_hops
         self.hll_p = hll_p
-        self.elph_hashes = ElphHashes(max_hash_hops=self.max_hash_hops, hll_p=self.hll_p, minhash_num_perm=256)  # object for hash and subgraph feature operations
+        self.elph_hashes = ElphHashes(max_hash_hops=self.max_hash_hops, hll_p=self.hll_p, minhash_num_perm=minhash_num_perm)  # object for hash and subgraph feature operations
         self.subgraph_features = None
         self.hashes = None
         self.device = edge_index.device
