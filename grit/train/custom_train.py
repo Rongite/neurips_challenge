@@ -70,6 +70,7 @@ def eval_epoch(logger, loader, model, split='val'):
             loss, pred_score = compute_loss(pred, true)
             _true = true.detach().to('cpu', non_blocking=True)
             _pred = pred_score.detach().to('cpu', non_blocking=True)
+        logging.info(f'Test time takes {time.time() - time_start} seconds for {pred.shape[0]} graphs.')
         logger.update_stats(true=_true,
                             pred=_pred,
                             loss=loss.detach().cpu().item(),
