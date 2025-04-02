@@ -27,6 +27,8 @@ posenc_RRWP:
   nhops: 3
   add_identity: True
   add_node_attr: False
+  hll_p: 8
+  minhash_num_perm : 256
 train:
   mode: custom
 #  batch_size: 32
