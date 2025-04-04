@@ -41,7 +41,7 @@ model:
   loss_fun: weighted_cross_entropy
 gt:  # Hyperparameters optimized for ~500k budget.
   layer_type: GritTransformer
-  layers: 12
+  layers: 6
   n_heads: 8
   dim_hidden: 48  # `gt.dim_hidden` must match `gnn.dim_inner`
   dropout: 0.01
