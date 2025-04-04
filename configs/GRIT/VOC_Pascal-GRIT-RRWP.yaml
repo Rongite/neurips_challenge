@@ -25,7 +25,7 @@ prep:
 posenc_RRWP:
   enable: True
   ksteps: 32
-  nhops: 3
+  nhops: 1
   add_identity: True
   add_node_attr: False
   add_inverse: False
