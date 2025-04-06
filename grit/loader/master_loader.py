@@ -401,7 +401,7 @@ def preformat_Planetoid(dataset_dir, name):
                       'make sure RDKit is installed.')
         raise e
 
-    dataset = PlanetoidDataset(dataset_dir, name, transform=T.Compose([
+    dataset = PlanetoidDataset(dataset_dir, name, pre_transform=T.Compose([
         T.NormalizeFeatures(),
         T.RandomNodeSplit('train_rest', num_val=500, num_test=500)
         ]))
