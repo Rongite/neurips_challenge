@@ -14,7 +14,7 @@ dataset:
   node_encoder_name: LinearNode
   node_encoder_bn: False
   edge_encoder: True
-  edge_encoder_name: LinearEdge
+  edge_encoder_name: DummyEdge
   edge_encoder_bn: False
 posenc_RRWP:
   enable: True
