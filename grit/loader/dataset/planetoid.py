@@ -92,15 +92,15 @@ class PlanetoidDataset(InMemoryDataset):
         super().__init__(root, transform, pre_transform)
         self.data, self.slices = torch.load(self.processed_paths[0])
 
-        train_idx = full_data.train_mask.nonzero(as_tuple=True)[0]
-        val_idx = full_data.val_mask.nonzero(as_tuple=True)[0]
-        test_idx = full_data.test_mask.nonzero(as_tuple=True)[0]
+        train_idx = self.data.train_mask.nonzero(as_tuple=True)[0]
+        val_idx = self.data.val_mask.nonzero(as_tuple=True)[0]
+        test_idx = self.data.test_mask.nonzero(as_tuple=True)[0]
 
         # Subgraph helper
         def extract_subgraph(node_idx):
-            edge_index, _ = subgraph(node_idx, full_data.edge_index, relabel_nodes=True)
-            x = full_data.x[node_idx]
-            y = full_data.y[node_idx]
+            edge_index, _ = subgraph(node_idx, self.data.edge_index, relabel_nodes=True)
+            x = self.data.x[node_idx]
+            y = self.data.y[node_idx]
             return Data(x=x, edge_index=edge_index, y=y)
 
         data_list = [
