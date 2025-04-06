@@ -93,25 +93,6 @@ class PlanetoidDataset(InMemoryDataset):
         super().__init__(root, transform, pre_transform)
         self.data, self.slices = torch.load(self.processed_paths[0])
 
-        train_idx = self.data.train_mask.nonzero(as_tuple=True)[0]
-        val_idx = self.data.val_mask.nonzero(as_tuple=True)[0]
-        test_idx = self.data.test_mask.nonzero(as_tuple=True)[0]
-
-        # Subgraph helper
-        def extract_subgraph(node_idx):
-            edge_index, _ = subgraph(node_idx, self.data.edge_index, relabel_nodes=True)
-            x = self.data.x[node_idx]
-            y = self.data.y[node_idx]
-            return Data(x=x, edge_index=edge_index, y=y)
-
-        data_list = [
-            extract_subgraph(train_idx),
-            extract_subgraph(torch.cat([train_idx, val_idx], dim=-1)),
-            extract_subgraph(torch.cat([train_idx, val_idx, test_idx], dim=-1)),
-        ]
-
-        self.data, self.slices = self.collate(data_list)
-
     @property
     def raw_dir(self) -> str:
         if self.split == 'geom-gcn':
@@ -161,6 +142,32 @@ class PlanetoidDataset(InMemoryDataset):
 
     def __repr__(self) -> str:
         return f'{self.name}()'
+        
+    def split_graph(self):
+        train_idx = self.data.train_mask.nonzero(as_tuple=True)[0]
+        val_idx = self.data.val_mask.nonzero(as_tuple=True)[0]
+        test_idx = self.data.test_mask.nonzero(as_tuple=True)[0]
+
+        # Subgraph helper
+        def extract_subgraph(node_idx):
+            edge_index, _ = subgraph(node_idx, self.data.edge_index, relabel_nodes=True)
+            x = self.data.x[node_idx]
+            y = self.data.y[node_idx]
+            return Data(x=x, edge_index=edge_index, y=y)
+
+        data_list = [
+            extract_subgraph(train_idx),
+            extract_subgraph(torch.cat([train_idx, val_idx], dim=-1)),
+            extract_subgraph(torch.cat([train_idx, val_idx, test_idx], dim=-1)),
+        ]
+
+        self.data, self.slices = self.collate(data_list)
+
+    def __len__(self):
+        return 3  # train, val, test
+
+    def get(self, idx):
+        return super().get(idx)
 
     def get_idx_split(self):
         """ Get dataset splits.

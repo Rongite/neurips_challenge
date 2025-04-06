@@ -408,6 +408,7 @@ def preformat_Planetoid(dataset_dir, name):
         ]))
     s_dict = dataset.get_idx_split()
     dataset.split_idxs = [s_dict[s] for s in ['train', 'val', 'test']]
+    dataset.split_graph()
     return dataset
 
 
