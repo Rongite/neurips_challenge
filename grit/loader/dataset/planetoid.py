@@ -92,30 +92,24 @@ class PlanetoidDataset(InMemoryDataset):
         super().__init__(root, transform, pre_transform)
         self.data, self.slices = torch.load(self.processed_paths[0])
 
-        if split == 'full':
-            data = self.get(0)
-            data.train_mask.fill_(True)
-            data.train_mask[data.val_mask | data.test_mask] = False
-            self.data, self.slices = self.collate([data])
+        train_idx = full_data.train_mask.nonzero(as_tuple=True)[0]
+        val_idx = full_data.val_mask.nonzero(as_tuple=True)[0]
+        test_idx = full_data.test_mask.nonzero(as_tuple=True)[0]
 
-        elif split == 'random':
-            data = self.get(0)
-            data.train_mask.fill_(False)
-            for c in range(self.num_classes):
-                idx = (data.y == c).nonzero(as_tuple=False).view(-1)
-                idx = idx[torch.randperm(idx.size(0))[:num_train_per_class]]
-                data.train_mask[idx] = True
+        # Subgraph helper
+        def extract_subgraph(node_idx):
+            edge_index, _ = subgraph(node_idx, full_data.edge_index, relabel_nodes=True)
+            x = full_data.x[node_idx]
+            y = full_data.y[node_idx]
+            return Data(x=x, edge_index=edge_index, y=y)
 
-            remaining = (~data.train_mask).nonzero(as_tuple=False).view(-1)
-            remaining = remaining[torch.randperm(remaining.size(0))]
+        data_list = [
+            extract_subgraph(train_idx),
+            extract_subgraph(torch.cat([train_idx, val_idx], dim=-1)),
+            extract_subgraph(torch.cat([train_idx, val_idx, test_idx], dim=-1)),
+        ]
 
-            data.val_mask.fill_(False)
-            data.val_mask[remaining[:num_val]] = True
-
-            data.test_mask.fill_(False)
-            data.test_mask[remaining[num_val:num_val + num_test]] = True
-
-            self.data, self.slices = self.collate([data])
+        self.data, self.slices = self.collate(data_list)
 
     @property
     def raw_dir(self) -> str:
@@ -173,9 +167,9 @@ class PlanetoidDataset(InMemoryDataset):
         Returns:
             Dict with 'train', 'val', 'test', splits indices.
         """
-        train_index = self.data.train_mask.nonzero(as_tuple=True)[0]
-        val_index = self.data.val_mask.nonzero(as_tuple=True)[0]
-        test_index = self.data.test_mask.nonzero(as_tuple=True)[0]
+        train_index = torch.tensor([0])
+        val_index = torch.tensor([1])
+        test_index = torch.tensor([2])
 
         splits = {}
         splits['train'] = train_index
