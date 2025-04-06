@@ -104,6 +104,9 @@ def load_dataset_master(format, name, dataset_dir):
         if pyg_dataset_id == 'GNNBenchmarkDataset':
             dataset = preformat_GNNBenchmarkDataset(dataset_dir, name)
 
+        if pyg_dataset_id == 'Planetoid':
+            dataset = preformat_Planetoid(dataset_dir, name)
+
         elif pyg_dataset_id == 'MalNetTiny':
             dataset = preformat_MalNetTiny(dataset_dir, feature_set=name)
 
@@ -251,6 +254,9 @@ def add_pe_transform_to_dataset(format, name, dataset_dir, pe_transform=None):
         if pyg_dataset_id == 'GNNBenchmarkDataset':
             dataset = preformat_GNNBenchmarkDataset(dataset_dir, name)
 
+        if pyg_dataset_id == 'Planetoid':
+            dataset = preformat_Planetoid(dataset_dir, name)
+
         elif pyg_dataset_id == 'MalNetTiny':
             dataset = preformat_MalNetTiny(dataset_dir, feature_set=name)
 
@@ -373,6 +379,31 @@ def preformat_GNNBenchmarkDataset(dataset_dir, name):
     )
     pre_transform_in_memory(dataset, T.Compose(tf_list))
 
+    return dataset
+
+
+def preformat_Planetoid(dataset_dir, name):
+    """Load and preformat datasets from PyG's Planetoid.
+
+    Args:
+        dataset_dir: path where to store the cached dataset
+        name: name of the specific dataset in the Planetoid class
+
+    Returns:
+        PyG dataset object
+    """
+
+    try:
+        # Load locally to avoid RDKit dependency until necessary.
+        from grit.loader.dataset.planetoid import PlanetoidDataset
+    except Exception as e:
+        logging.error('ERROR: Failed to import Peptides dataset class, '
+                      'make sure RDKit is installed.')
+        raise e
+
+    dataset = PlanetoidDataset(dataset_dir)
+    s_dict = dataset.get_idx_split()
+    dataset.split_idxs = [s_dict[s] for s in ['train', 'val', 'test']]
     return dataset
 
 
