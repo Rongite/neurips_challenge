@@ -7,7 +7,7 @@ import torch
 from torch_geometric.data import Data, InMemoryDataset, download_url
 from torch_geometric.io import read_planetoid_data
 from torch_geometric.utils import subgraph
-
+from grit.transform.transforms import (pre_transform_in_memory)
 
 class PlanetoidDataset(InMemoryDataset):
     r"""The citation network datasets :obj:`"Cora"`, :obj:`"CiteSeer"` and
