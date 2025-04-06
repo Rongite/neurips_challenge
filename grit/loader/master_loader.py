@@ -401,7 +401,11 @@ def preformat_Planetoid(dataset_dir, name):
                       'make sure RDKit is installed.')
         raise e
 
-    dataset = PlanetoidDataset(dataset_dir)
+    dataset = PlanetoidDataset(dataset_dir, name)
+    pre_transform_in_memory(dataset, T.Compose([
+        T.NormalizeFeatures(),
+        T.RandomNodeSplit('train_rest', num_val=500, num_test=500)
+        ]))
     s_dict = dataset.get_idx_split()
     dataset.split_idxs = [s_dict[s] for s in ['train', 'val', 'test']]
     return dataset

@@ -176,3 +176,10 @@ class PlanetoidDataset(InMemoryDataset):
         train_index = self.data.train_mask.nonzero(as_tuple=True)[0]
         val_index = self.data.val_mask.nonzero(as_tuple=True)[0]
         test_index = self.data.test_mask.nonzero(as_tuple=True)[0]
+
+        splits = {}
+        splits['train'] = train_index
+        splits['val'] = val_index
+        splits['test'] = test_index
+
+        return splits
