@@ -4,8 +4,8 @@ from typing import Callable, List, Optional
 import numpy as np
 import torch
 
-from torch_geometric.data import InMemoryDataset
-from torch_geometric.io import fs, read_planetoid_data
+from torch_geometric.data import InMemoryDataset, download_url
+from torch_geometric.io import read_planetoid_data
 
 
 class PlanetoidDataset(InMemoryDataset):
@@ -48,8 +48,6 @@ class PlanetoidDataset(InMemoryDataset):
             an :obj:`torch_geometric.data.Data` object and returns a
             transformed version. The data object will be transformed before
             being saved to disk. (default: :obj:`None`)
-        force_reload (bool, optional): Whether to re-process the dataset.
-            (default: :obj:`False`)
 
     **STATS:**
 
@@ -82,26 +80,17 @@ class PlanetoidDataset(InMemoryDataset):
     geom_gcn_url = ('https://raw.githubusercontent.com/graphdml-uiuc-jlu/'
                     'geom-gcn/master')
 
-    def __init__(
-        self,
-        root: str,
-        name: str,
-        split: str = "public",
-        num_train_per_class: int = 20,
-        num_val: int = 500,
-        num_test: int = 1000,
-        transform: Optional[Callable] = None,
-        pre_transform: Optional[Callable] = None,
-        force_reload: bool = False,
-    ) -> None:
+    def __init__(self, root: str, name: str, split: str = "public",
+                 num_train_per_class: int = 20, num_val: int = 500,
+                 num_test: int = 1000, transform: Optional[Callable] = None,
+                 pre_transform: Optional[Callable] = None):
         self.name = name
 
         self.split = split.lower()
         assert self.split in ['public', 'full', 'geom-gcn', 'random']
 
-        super().__init__(root, transform, pre_transform,
-                         force_reload=force_reload)
-        self.load(self.processed_paths[0])
+        super().__init__(root, transform, pre_transform)
+        self.data, self.slices = torch.load(self.processed_paths[0])
 
         if split == 'full':
             data = self.get(0)
@@ -149,15 +138,15 @@ class PlanetoidDataset(InMemoryDataset):
     def processed_file_names(self) -> str:
         return 'data.pt'
 
-    def download(self) -> None:
+    def download(self):
         for name in self.raw_file_names:
-            fs.cp(f'{self.url}/{name}', self.raw_dir)
+            download_url(f'{self.url}/{name}', self.raw_dir)
         if self.split == 'geom-gcn':
             for i in range(10):
                 url = f'{self.geom_gcn_url}/splits/{self.name.lower()}'
-                fs.cp(f'{url}_split_0.6_0.2_{i}.npz', self.raw_dir)
+                download_url(f'{url}_split_0.6_0.2_{i}.npz', self.raw_dir)
 
-    def process(self) -> None:
+    def process(self):
         data = read_planetoid_data(self.raw_dir, self.name)
 
         if self.split == 'geom-gcn':
@@ -173,7 +162,10 @@ class PlanetoidDataset(InMemoryDataset):
             data.test_mask = torch.stack(test_masks, dim=1)
 
         data = data if self.pre_transform is None else self.pre_transform(data)
-        self.save([data], self.processed_paths[0])
+        torch.save(self.collate([data]), self.processed_paths[0])
+
+    def __repr__(self) -> str:
+        return f'{self.name}()'
 
     def get_idx_split(self):
         """ Get dataset splits.
@@ -184,7 +176,3 @@ class PlanetoidDataset(InMemoryDataset):
         train_index = self.data.train_mask.nonzero(as_tuple=True)[0]
         val_index = self.data.val_mask.nonzero(as_tuple=True)[0]
         test_index = self.data.test_mask.nonzero(as_tuple=True)[0]
-
-
-    def __repr__(self) -> str:
-        return f'{self.name}()'
