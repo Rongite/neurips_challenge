@@ -93,6 +93,11 @@ class PlanetoidDataset(InMemoryDataset):
         super().__init__(root, transform, pre_transform)
         self.data, self.slices = torch.load(self.processed_paths[0])
 
+        pre_transform_in_memory(self, T.Compose([
+        T.NormalizeFeatures(),
+        T.RandomNodeSplit('train_rest', num_val=500, num_test=500)
+        ]))
+
     @property
     def raw_dir(self) -> str:
         if self.split == 'geom-gcn':
@@ -142,7 +147,7 @@ class PlanetoidDataset(InMemoryDataset):
 
     def __repr__(self) -> str:
         return f'{self.name}()'
-        
+
     def split_graph(self):
         train_idx = self.data.train_mask.nonzero(as_tuple=True)[0]
         val_idx = self.data.val_mask.nonzero(as_tuple=True)[0]
@@ -162,9 +167,6 @@ class PlanetoidDataset(InMemoryDataset):
         ]
 
         self.data, self.slices = self.collate(data_list)
-
-    def __len__(self):
-        return 3  # train, val, test
 
     def get(self, idx):
         return super().get(idx)
