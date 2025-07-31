@@ -1,4 +1,4 @@
-out_dir: /home/ubuntu/LLM-inference/jikai-project/neurips_challenge/results/20250722_103806_Rg
+out_dir: /home/ubuntu/LLM-inference/jikai-project/neurips_challenge/results/polymer-GRIT-RRWP/Rg
 metric_best: mae
 seed: 0
 metric_agg: argmin

@@ -147,37 +147,7 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
                             add_identity=True,
                             spd=param.spd, # by default False
                             )
-        # data = transform(data)
-        # --- Start: Fix for dropped x attribute ---
-        x_backup = data.x.clone() if hasattr(data, 'x') and data.x is not None else None
-        # data = transform(data)
-        # --- Start: Fix for dropped x attribute ---
-        x_backup = data.x.clone() if hasattr(data, 'x') and data.x is not None else None
-        # data = transform(data)
-        # --- Start: Fix for dropped x attribute ---
-        x_backup = data.x.clone() if hasattr(data, 'x') and data.x is not None else None
-        # data = transform(data)
-        # --- Start: Fix for dropped x attribute ---
-        x_backup = data.x.clone() if hasattr(data, 'x') and data.x is not None else None
-        # data = transform(data)
-        # --- Start: Fix for dropped x attribute ---
-        x_backup = data.x.clone() if hasattr(data, 'x') and data.x is not None else None
         data = transform(data)
-        if x_backup is not None:
-            data.x = x_backup
-        # --- End: Fix ---
-        if x_backup is not None:
-            data.x = x_backup
-        # --- End: Fix ---
-        if x_backup is not None:
-            data.x = x_backup
-        # --- End: Fix ---
-        if x_backup is not None:
-            data.x = x_backup
-        # --- End: Fix ---
-        if x_backup is not None:
-            data.x = x_backup
-        # --- End: Fix ---
 
     return data
 

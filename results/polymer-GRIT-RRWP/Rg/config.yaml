@@ -160,7 +160,7 @@ optim:
   - 90
   stop_patience: 100
   weight_decay: 1.0e-05
-out_dir: /home/ubuntu/LLM-inference/jikai-project/neurips_challenge/results/20250722_103806_Rg
+out_dir: /home/ubuntu/LLM-inference/jikai-project/neurips_challenge/results/polymer-GRIT-RRWP/Rg
 params: 478017
 posenc_ElstaticSE:
   dim_pe: 16
@@ -254,7 +254,7 @@ pretrained:
   reset_prediction_head: true
 print: both
 round: 5
-run_dir: /home/ubuntu/LLM-inference/jikai-project/neurips_challenge/results/20250722_103806_Rg
+run_dir: /home/ubuntu/LLM-inference/jikai-project/neurips_challenge/results/polymer-GRIT-RRWP/Rg
 run_id: 0
 run_multiple_splits: []
 seed: 0
