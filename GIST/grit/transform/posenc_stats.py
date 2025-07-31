@@ -139,15 +139,28 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
     if 'RRWP' in pe_types:
         param = cfg.posenc_RRWP
 
+        # Original code - causes AttributeError when config parameters are missing:
+        # transform = partial(add_full_rrwp,
+        #                     walk_length=param.ksteps,
+        #                     max_hash_hops=param.nhops,
+        #                     attr_name_abs="rrwp",
+        #                     attr_name_rel="rrwp",
+        #                     add_identity=True,
+        #                     spd=param.spd, # by default False
+        #                     hll_p=param.hll_p,
+        #                     minhash_num_perm=param.minhash_num_perm
+        #                     )
+        
+        # Fixed code - use getattr with default values to handle missing config parameters:
         transform = partial(add_full_rrwp,
                             walk_length=param.ksteps,
                             max_hash_hops=param.nhops,
                             attr_name_abs="rrwp",
                             attr_name_rel="rrwp",
                             add_identity=True,
-                            spd=param.spd, # by default False
-                            hll_p=param.hll_p,
-                            minhash_num_perm=param.minhash_num_perm
+                            spd=getattr(param, 'spd', False),
+                            hll_p=getattr(param, 'hll_p', 8),
+                            minhash_num_perm=getattr(param, 'minhash_num_perm', 128)
                             )
         data = transform(data)
 

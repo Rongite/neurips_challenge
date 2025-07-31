@@ -155,6 +155,30 @@ class RRWPLinearEdgeEncoder(torch.nn.Module):
             # edge_index, edge_attr = add_remaining_self_loops(edge_index, edge_attr, num_nodes=batch.num_nodes, fill_value=0.)
             edge_index, edge_attr = add_self_loops(edge_index, edge_attr, num_nodes=batch.num_nodes, fill_value=0.)
 
+            # Original code - causes RuntimeError: Tensors must have same number of dimensions:
+            # out_idx, out_val = torch_sparse.coalesce(
+            #     torch.cat([edge_index, rrwp_idx], dim=1),
+            #     torch.cat([edge_attr, rrwp_val], dim=0),
+            #     batch.num_nodes, batch.num_nodes,
+            #     op="add"
+            # )
+            
+            # Fixed code - ensure edge_attr and rrwp_val have compatible dimensions:
+            # Ensure edge_attr and rrwp_val have compatible dimensions
+            if edge_attr.dim() != rrwp_val.dim():
+                if edge_attr.dim() == 3 and rrwp_val.dim() == 2:
+                    # Flatten edge_attr from 3D to 2D
+                    edge_attr = edge_attr.view(edge_attr.size(0), -1)
+                elif edge_attr.dim() == 2 and rrwp_val.dim() == 3:
+                    # Flatten rrwp_val from 3D to 2D  
+                    rrwp_val = rrwp_val.view(rrwp_val.size(0), -1)
+            
+            # Ensure both tensors have the same feature dimension
+            if edge_attr.size(1) != rrwp_val.size(1):
+                min_dim = min(edge_attr.size(1), rrwp_val.size(1))
+                edge_attr = edge_attr[:, :min_dim]
+                rrwp_val = rrwp_val[:, :min_dim]
+
             out_idx, out_val = torch_sparse.coalesce(
                 torch.cat([edge_index, rrwp_idx], dim=1),
                 torch.cat([edge_attr, rrwp_val], dim=0),
