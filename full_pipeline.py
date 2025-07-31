@@ -1021,11 +1021,11 @@ def main():
     print(f"📋 Evaluation report: {report_path}")
     print("="*60)
     print(f"\n=== Test predictions completed successfully for all targets ===")
-    print(f"Generated submission file: submission_gist.csv")
+    print(f"Generated submission file: submission.csv")
     sub_out = pd.read_csv(DATA_ROOT/'sample_submission.csv')
     sub_out[TARGETS] = sub[TARGETS].values
-    sub_out.to_csv(ROOT/'submission_gist.csv', index=False)
-    print("Saved submission_gist.csv (using Stage 2 GIST model predictions)")
+    sub_out.to_csv(ROOT/'submission.csv', index=False)
+    print("Saved submission.csv (using Stage 2 GIST model predictions)")
 
     total_end_time = time.time()
     elapsed_seconds = total_end_time - total_start_time
@@ -1034,3 +1034,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
