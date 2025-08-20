@@ -1,6 +1,0 @@
-Target,MAE,Data_Range,Data_Min,Data_Max,Sample_Count,Relative_Error,Performance_Grade,Performance_Level,Training_Status
-Tg,60.1783,620.2797,-148.0297,472.2500,557,9.70%,B+,Good,Completed
-FFV,0.0051,0.5501,0.2270,0.7771,7892,0.92%,A+,Excellent,Completed
-Tc,0.0305,1.5435,0.0465,1.5900,1611,1.98%,A+,Excellent,Completed
-Density,0.0319,1.0923,0.7487,1.8410,613,2.92%,A+,Excellent,Completed
-Rg,1.4008,24.9446,9.7284,34.6729,614,5.62%,A,Very Good,Completed
