@@ -238,15 +238,31 @@ spec = importlib.util.spec_from_file_location(
 ps = importlib.util.module_from_spec(spec); spec.loader.exec_module(ps)
 smiles2graph = ps.smiles2graph
 
-# ------------------------ 3) Generate / Load Graph Cache --------------------------- #
-def build_graph_cache() -> None:
+# ------------------------ 3) Generate / Load Graph Cache with G-Mixup --------------------------- #
+def build_graph_cache_with_gmixup(enable_gmixup: bool = False, gmixup_params: Dict = None) -> None:
+    """
+    Build graph cache with optional G-Mixup data augmentation
+    """
     GRAPH_DIR.mkdir(parents=True, exist_ok=True)
-    if (GRAPH_DIR / "train_graphs.pt").exists() and (GRAPH_DIR / "test_graphs.pt").exists():
+    
+    # Check if both original and augmented caches exist
+    original_cache = GRAPH_DIR / "train_graphs.pt"
+    augmented_cache = GRAPH_DIR / "train_graphs_gmixup.pt"
+    test_cache = GRAPH_DIR / "test_graphs.pt"
+    
+    cache_file = augmented_cache if enable_gmixup else original_cache
+    
+    if cache_file.exists() and test_cache.exists():
+        print(f"Using existing graph cache: {cache_file.name}")
         return
+    
     print("Building graph cache...")
     df = consolidate()
+    
+    # Build original graphs
     graphs: List[Data] = []
-    for row in tqdm(df.itertuples(index=False), total=len(df), desc="Processing training graphs"):
+    print("🔄 Processing molecular structures...")
+    for row in tqdm(df.itertuples(index=False), total=len(df), desc="Converting SMILES to graphs"):
         g = smiles2graph(row.SMILES)
         y = torch.tensor([getattr(row, t) for t in TARGETS], dtype=torch.float)
         graphs.append(Data(
@@ -256,21 +272,66 @@ def build_graph_cache() -> None:
             y=y,
             y_mask=~torch.isnan(y)
         ))
-    torch.save(graphs, GRAPH_DIR/"train_graphs.pt")
+    
+    # Save original graphs
+    torch.save(graphs, original_cache)
+    print(f"✅ Original graphs saved: {len(graphs)} molecules")
+    
+    # Apply G-Mixup augmentation if enabled
+    if enable_gmixup and gmixup_params:
+        print("\n🧪 Applying G-Mixup data augmentation...")
+        
+        try:
+            # Set G-Mixup parameters as global variables for compatibility
+            global ENABLE_GMIXUP, GMIXUP_LAMBDA_MIN, GMIXUP_LAMBDA_MAX, GMIXUP_AUG_RATIO
+            global GMIXUP_AUG_ROUNDS, GMIXUP_SVD_THRESHOLD, GMIXUP_BINNING_STRATEGY
+            global GMIXUP_NUM_BINS, GMIXUP_MIN_SAMPLES_PER_BIN
+            
+            ENABLE_GMIXUP = gmixup_params.get('enable', True)
+            GMIXUP_LAMBDA_MIN = gmixup_params.get('lambda_min', 0.1)
+            GMIXUP_LAMBDA_MAX = gmixup_params.get('lambda_max', 0.3)
+            GMIXUP_AUG_RATIO = gmixup_params.get('aug_ratio', 0.2)
+            GMIXUP_AUG_ROUNDS = gmixup_params.get('aug_rounds', 8)
+            GMIXUP_SVD_THRESHOLD = gmixup_params.get('svd_threshold', 0.3)
+            GMIXUP_BINNING_STRATEGY = gmixup_params.get('binning_strategy', 'quantile')
+            GMIXUP_NUM_BINS = gmixup_params.get('num_bins', 5)
+            GMIXUP_MIN_SAMPLES_PER_BIN = gmixup_params.get('min_samples_per_bin', 15)
+            
+            # Import G-Mixup functions (should be available in the notebook environment)
+            augmented_graphs = perform_gmixup_augmentation(graphs, df, TARGETS)
+            
+            # Save augmented dataset
+            torch.save(augmented_graphs, augmented_cache)
+            print(f"✅ G-Mixup augmentation completed: {len(augmented_graphs)} total graphs")
+            print(f"   📈 Augmentation ratio: {(len(augmented_graphs) - len(graphs)) / len(graphs):.2%}")
+            
+        except Exception as e:
+            print(f"⚠️  G-Mixup augmentation failed: {e}")
+            print("   Using original graphs without augmentation...")
+            torch.save(graphs, augmented_cache)
+    
+    # Generate test graphs (no augmentation needed)
+    if not test_cache.exists():
+        print("\n🔄 Processing test molecules...")
+        test_df = pd.read_csv(DATA_ROOT/"test.csv")
+        if "smiles" in test_df: test_df = test_df.rename(columns={"smiles":"SMILES"})
+        test_df["SMILES"] = test_df["SMILES"].map(canon)
+        t_graphs = []
+        for smi in tqdm(test_df.SMILES.dropna(), total=len(test_df.SMILES.dropna()), desc="Converting test SMILES"):
+            g = smiles2graph(smi)
+            t_graphs.append(Data(
+                x=torch.from_numpy(g["node_feat"]).long(),
+                edge_index=torch.from_numpy(g["edge_index"]).long(),
+                edge_attr=torch.from_numpy(g["edge_feat"]).long()))
+        torch.save(t_graphs, test_cache)
+        print(f"✅ Test graphs saved: {len(t_graphs)} molecules")
+    
+    print("✅ Graph cache building completed successfully!")
 
-    # Generate test graphs
-    test_df = pd.read_csv(DATA_ROOT/"test.csv")
-    if "smiles" in test_df: test_df = test_df.rename(columns={"smiles":"SMILES"})
-    test_df["SMILES"] = test_df["SMILES"].map(canon)
-    t_graphs = []
-    for smi in tqdm(test_df.SMILES.dropna(), total=len(test_df.SMILES.dropna()), desc="Processing test graphs"):
-        g = smiles2graph(smi)
-        t_graphs.append(Data(
-            x=torch.from_numpy(g["node_feat"]).long(),
-            edge_index=torch.from_numpy(g["edge_index"]).long(),
-            edge_attr=torch.from_numpy(g["edge_feat"]).long()))
-    torch.save(t_graphs, GRAPH_DIR/"test_graphs.pt")
-    print("Graph cache built successfully.")
+# Backward compatibility wrapper
+def build_graph_cache() -> None:
+    """Original function for backward compatibility"""
+    build_graph_cache_with_gmixup(enable_gmixup=False)
 
 
 # ---------------------- 5) Weighted MAE Function (Refactored) ---------------------- #
@@ -300,29 +361,57 @@ def weighted_mae(sol: pd.DataFrame, sub: pd.DataFrame) -> float:
 
     return float(total_error)
 
-# --------------------- 6) Write polymer_loader.py --------------------- #
-def ensure_poly_loader():
-    # Original code:
-    # loader_py = GRIT_DIR / "grit" / "loader" / "polymer_loader.py"
-    # loader_py.write_text(Original code...)
-    
-    # Modified code to handle PE properly:
+# --------------------- 6) Write polymer_loader.py with G-Mixup Support --------------------- #
+def ensure_poly_loader(use_gmixup: bool = False):
+    """
+    Create polymer loader with optional G-Mixup support
+    """
     loader_py = GRIT_DIR / "grit" / "loader" / "polymer_loader.py"
+    
+    graph_file = "train_graphs_gmixup.pt" if use_gmixup else "train_graphs.pt"
+    
     loader_py.write_text(
-        """
+        f"""
 from pathlib import Path
 import torch, random
 from torch_geometric.data import InMemoryDataset
 
 class PolymerDS(InMemoryDataset):
-    def __init__(self, root, target_idx: int, **kw):
+    def __init__(self, root, target_idx: int, use_gmixup: bool = {use_gmixup}, **kw):
         super().__init__(root, **kw)
-        graphs = torch.load(Path(root) / "train_supplement" / "graphs" / "train_graphs.pt", map_location='cpu', weights_only=False)
-        graphs = [g for g in graphs if g.y_mask[target_idx]]
+        
+        # Choose appropriate graph file based on G-Mixup setting
+        if use_gmixup:
+            graph_path = Path(root) / "train_supplement" / "graphs" / "train_graphs_gmixup.pt"
+            if not graph_path.exists():
+                print("⚠️  G-Mixup graphs not found, falling back to original graphs")
+                graph_path = Path(root) / "train_supplement" / "graphs" / "train_graphs.pt"
+        else:
+            graph_path = Path(root) / "train_supplement" / "graphs" / "train_graphs.pt"
+        
+        # Load graphs
+        print(f"📖 Loading graphs from: {{graph_path.name}}")
+        graphs = torch.load(graph_path, map_location='cpu', weights_only=False)
+        
+        # Filter graphs that have the target value
+        original_count = len(graphs)
+        graphs = [g for g in graphs if g.y_mask[target_idx] if hasattr(g, 'y_mask') and len(g.y_mask) > target_idx]
+        filtered_count = len(graphs)
+        
+        print(f"📊 Target {{target_idx}} data: {{filtered_count}}/{{original_count}} graphs available")
+        
+        # Extract single target value for each graph
         for g in graphs:
-            g.y = g.y[target_idx:target_idx+1]
+            if len(g.y.shape) > 0 and len(g.y) > target_idx:
+                g.y = g.y[target_idx:target_idx+1]
+            else:
+                # Handle single-target synthetic graphs from G-Mixup
+                g.y = g.y.view(1) if g.y.numel() == 1 else g.y[0:1]
             g.y_mask = torch.tensor([True])
+        
+        # Collate into dataset
         self.data, self.slices = self.collate(graphs)
+        print(f"✅ PolymerDS initialized: {{len(self)}} samples for target {{target_idx}}")
 
     @property
     def raw_file_names(self): return []
@@ -330,6 +419,10 @@ class PolymerDS(InMemoryDataset):
     def processed_file_names(self): return []
     def download(self): pass
     def process(self): pass
+
+class PolymerDS_GMixup(PolymerDS):
+    def __init__(self, root, target_idx: int, **kw):
+        super().__init__(root, target_idx, use_gmixup=True, **kw)
 
 """)
 
@@ -864,13 +957,46 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--cfg', required=True, help='Path to base YAML config')
     ap.add_argument('--device', default='cuda:0')
+    ap.add_argument('--enable_gmixup', action='store_true', help='Enable G-Mixup data augmentation')
+    ap.add_argument('--gmixup_aug_ratio', type=float, default=0.2, help='G-Mixup augmentation ratio')
+    ap.add_argument('--gmixup_lambda_min', type=float, default=0.1, help='G-Mixup minimum lambda')
+    ap.add_argument('--gmixup_lambda_max', type=float, default=0.3, help='G-Mixup maximum lambda')
     args = ap.parse_args()
 
     with open(args.cfg) as f:
         base_cfg = yaml.safe_load(f)
 
-    build_graph_cache()
-    ensure_poly_loader()
+    # Check for G-Mixup parameters in config or use defaults
+    enable_gmixup = getattr(args, 'enable_gmixup', False)
+    if 'gmixup' in base_cfg:
+        enable_gmixup = base_cfg['gmixup'].get('enable', enable_gmixup)
+    
+    # Prepare G-Mixup parameters if enabled
+    gmixup_params = None
+    if enable_gmixup:
+        gmixup_params = {
+            'enable': True,
+            'lambda_min': getattr(args, 'gmixup_lambda_min', 0.1),
+            'lambda_max': getattr(args, 'gmixup_lambda_max', 0.3),
+            'aug_ratio': getattr(args, 'gmixup_aug_ratio', 0.2),
+            'aug_rounds': 8,
+            'svd_threshold': 0.3,
+            'binning_strategy': 'quantile',
+            'num_bins': 5,
+            'min_samples_per_bin': 15
+        }
+        
+        # Override with config values if present
+        if 'gmixup' in base_cfg:
+            gmixup_config = base_cfg['gmixup']
+            gmixup_params.update(gmixup_config)
+        
+        print("🧪 G-Mixup data augmentation enabled!")
+        print(f"   📊 Parameters: {gmixup_params}")
+
+    # Build graph cache with optional G-Mixup augmentation
+    build_graph_cache_with_gmixup(enable_gmixup, gmixup_params)
+    ensure_poly_loader(enable_gmixup)
 
     loader_py = GRIT_DIR / "grit" / "loader" / "polymer_loader.py"
     spec = importlib.util.spec_from_file_location("polymer_loader", loader_py)
@@ -878,7 +1004,16 @@ def main():
     spec.loader.exec_module(poly_loader_module)
     PolymerDS_class = poly_loader_module.PolymerDS
 
-    graphs = torch.load(GRAPH_DIR / "train_graphs.pt", map_location='cpu', weights_only=False)
+    # Load appropriate graph file based on G-Mixup setting
+    graph_file = "train_graphs_gmixup.pt" if enable_gmixup else "train_graphs.pt"
+    graph_path = GRAPH_DIR / graph_file
+    
+    if not graph_path.exists():
+        print(f"⚠️  {graph_file} not found, falling back to train_graphs.pt")
+        graph_path = GRAPH_DIR / "train_graphs.pt"
+    
+    print(f"📖 Loading training graphs from: {graph_path.name}")
+    graphs = torch.load(graph_path, map_location='cpu', weights_only=False)
     max_node_type = 0
     max_edge_type = 0
     for g in graphs:
